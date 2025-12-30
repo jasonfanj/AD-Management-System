@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>域控通-Web - AD管理系统</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.14/lib/theme-chalk/index.css">
+</head>
+<body>
+    <div id="app">
+        <!-- 登录页面 -->
+        <div v-if="!isAuthenticated" class="login-container">
+            <div class="login-box">
+                <h1 class="logo">域控通-Web</h1>
+                <h2>AD管理系统</h2>
+                <el-form :model="loginForm" :rules="loginRules" ref="loginForm" class="login-form">
+                    <el-form-item prop="username">
+                        <el-input v-model="loginForm.username" placeholder="用户名" prefix-icon="el-icon-user"></el-input>
+                    </el-form-item>
+                    <el-form-item prop="password">
+                        <el-input v-model="loginForm.password" type="password" placeholder="密码" prefix-icon="el-icon-lock" @keyup.enter.native="handleLogin"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="handleLogin" :loading="loading" style="width: 100%">登录</el-button>
+                    </el-form-item>
+                </el-form>
+                <div v-if="error" class="error-message">{{ error }}</div>
+            </div>
+        </div>
+
+        <!-- 主界面 -->
+        <div v-else class="main-container">
+            <!-- 顶部导航 -->
+            <header class="header">
+                <div class="header-left">
+                    <h1 class="logo-small">域控通-Web</h1>
+                </div>
+                <div class="header-right">
+                    <el-dropdown @command="handleCommand">
+                        <span class="user-info">
+                            <i class="el-icon-user"></i> {{ currentUser.username }}
+                            <i class="el-icon-arrow-down"></i>
+                        </span>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                            <el-dropdown-item command="changePassword">修改密码</el-dropdown-item>
+                            <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- 侧边栏 -->
+                <aside class="sidebar">
+                    <el-menu :default-active="activeMenu" @select="handleMenuSelect" router>
+                        <el-menu-item index="users">
+                            <i class="el-icon-user"></i>
+                            <span>用户管理</span>
+                        </el-menu-item>
+                        <el-menu-item index="selfservice">
+                            <i class="el-icon-setting"></i>
+                            <span>自助服务</span>
+                        </el-menu-item>
+                        <el-menu-item index="audit">
+                            <i class="el-icon-document"></i>
+                            <span>审计日志</span>
+                        </el-menu-item>
+                        <el-menu-item index="reports">
+                            <i class="el-icon-data-analysis"></i>
+                            <span>报表统计</span>
+                        </el-menu-item>
+                        <el-menu-item index="system" v-if="currentUser.role === 'admin'">
+                            <i class="el-icon-setting"></i>
+                            <span>系统设置</span>
+                        </el-menu-item>
+                    </el-menu>
+                </aside>
+
+                <!-- 主内容区 -->
+                <main class="main-content">
+                    <!-- 用户管理 -->
+                    <div v-if="activeMenu === 'users'" class="page-content">
+                        <h2>用户管理</h2>
+                        <div class="toolbar">
+                            <el-button type="primary" @click="showCreateUserDialog = true">
+                                <i class="el-icon-plus"></i> 创建用户
+                            </el-button>
+                            <el-button @click="loadUsers">
+                                <i class="el-icon-refresh"></i> 刷新
+                            </el-button>
+                            <el-input v-model="userSearchKeyword" placeholder="搜索用户" style="width: 300px; margin-left: 10px;" @keyup.enter.native="searchUsers">
+                                <el-button slot="append" @click="searchUsers">搜索</el-button>
+                            </el-input>
+                        </div>
+                        <el-table :data="users" v-loading="loading" style="margin-top: 20px;">
+                            <el-table-column prop="sAMAccountName" label="用户名" width="150"></el-table-column>
+                            <el-table-column prop="displayName" label="显示名称" width="150"></el-table-column>
+                            <el-table-column prop="mail" label="邮箱" width="200"></el-table-column>
+                            <el-table-column prop="department" label="部门" width="120"></el-table-column>
+                            <el-table-column prop="title" label="职位" width="120"></el-table-column>
+                            <el-table-column prop="is_enabled" label="状态" width="80">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.is_enabled ? 'success' : 'danger'">
+                                        {{ scope.row.is_enabled ? '启用' : '禁用' }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="300" fixed="right">
+                                <template slot-scope="scope">
+                                    <el-button size="mini" @click="viewUser(scope.row)">查看</el-button>
+                                    <el-button size="mini" @click="editUser(scope.row)">编辑</el-button>
+                                    <el-button size="mini" type="warning" @click="resetPassword(scope.row)">重置密码</el-button>
+                                    <el-button size="mini" type="danger" @click="deleteUser(scope.row)">删除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+
+                    <!-- 自助服务 -->
+                    <div v-if="activeMenu === 'selfservice'" class="page-content">
+                        <h2>自助服务</h2>
+                        <el-tabs>
+                            <el-tab-pane label="重置密码">
+                                <el-form :model="resetPasswordForm" label-width="120px" style="max-width: 500px;">
+                                    <el-form-item label="用户名">
+                                        <el-input v-model="resetPasswordForm.username" :value="currentUser.username" disabled></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="新密码">
+                                        <el-input v-model="resetPasswordForm.newPassword" type="password"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="确认密码">
+                                        <el-input v-model="resetPasswordForm.confirmPassword" type="password"></el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-button type="primary" @click="handleSelfResetPassword">重置密码</el-button>
+                                    </el-form-item>
+                                </el-form>
+                            </el-tab-pane>
+                            <el-tab-pane label="解锁账户">
+                                <el-form :model="unlockForm" label-width="120px" style="max-width: 500px;">
+                                    <el-form-item label="用户名">
+                                        <el-input v-model="unlockForm.username" :value="currentUser.username"></el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-button type="primary" @click="handleUnlockAccount">解锁账户</el-button>
+                                    </el-form-item>
+                                </el-form>
+                            </el-tab-pane>
+                            <el-tab-pane label="个人信息">
+                                <el-form :model="profileForm" label-width="120px" style="max-width: 500px;" v-loading="profileLoading">
+                                    <el-form-item label="用户名">
+                                        <el-input v-model="profileForm.sAMAccountName" disabled></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="显示名称">
+                                        <el-input v-model="profileForm.displayName"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="邮箱">
+                                        <el-input v-model="profileForm.mail"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="电话">
+                                        <el-input v-model="profileForm.telephoneNumber"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="手机">
+                                        <el-input v-model="profileForm.mobile"></el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-button type="primary" @click="updateProfile">更新信息</el-button>
+                                    </el-form-item>
+                                </el-form>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </div>
+
+                    <!-- 审计日志 -->
+                    <div v-if="activeMenu === 'audit'" class="page-content">
+                        <h2>审计日志</h2>
+                        <div class="toolbar">
+                            <el-date-picker v-model="auditDateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
+                            <el-select v-model="auditAction" placeholder="操作类型" style="width: 150px; margin-left: 10px;">
+                                <el-option label="全部" value=""></el-option>
+                                <el-option label="创建" value="create"></el-option>
+                                <el-option label="更新" value="update"></el-option>
+                                <el-option label="删除" value="delete"></el-option>
+                                <el-option label="登录" value="login"></el-option>
+                            </el-select>
+                            <el-button @click="loadAuditLogs" style="margin-left: 10px;">查询</el-button>
+                        </div>
+                        <el-table :data="auditLogs" v-loading="loading" style="margin-top: 20px;">
+                            <el-table-column prop="created_at" label="时间" width="180"></el-table-column>
+                            <el-table-column prop="username" label="用户" width="120"></el-table-column>
+                            <el-table-column prop="action" label="操作" width="100"></el-table-column>
+                            <el-table-column prop="resource_type" label="资源类型" width="120"></el-table-column>
+                            <el-table-column prop="resource_name" label="资源名称" width="150"></el-table-column>
+                            <el-table-column prop="ip_address" label="IP地址" width="130"></el-table-column>
+                            <el-table-column prop="status" label="状态" width="80">
+                                <template slot-scope="scope">
+                                    <el-tag :type="scope.row.status === 'success' ? 'success' : 'danger'">
+                                        {{ scope.row.status === 'success' ? '成功' : '失败' }}
+                                    </el-tag>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+
+                    <!-- 报表统计 -->
+                    <div v-if="activeMenu === 'reports'" class="page-content">
+                        <h2>报表统计</h2>
+                        <div class="stats-grid">
+                            <el-card class="stat-card">
+                                <div class="stat-value">{{ userStats.total }}</div>
+                                <div class="stat-label">总用户数</div>
+                            </el-card>
+                            <el-card class="stat-card">
+                                <div class="stat-value">{{ userStats.enabled }}</div>
+                                <div class="stat-label">启用用户</div>
+                            </el-card>
+                            <el-card class="stat-card">
+                                <div class="stat-value">{{ userStats.disabled }}</div>
+                                <div class="stat-label">禁用用户</div>
+                            </el-card>
+                            <el-card class="stat-card">
+                                <div class="stat-value">{{ auditStats.today }}</div>
+                                <div class="stat-label">今日操作</div>
+                            </el-card>
+                        </div>
+                    </div>
+
+                    <!-- 系统设置 -->
+                    <div v-if="activeMenu === 'system'" class="page-content">
+                        <h2>系统设置</h2>
+                        <el-tabs>
+                            <el-tab-pane label="AD配置">
+                                <el-form :model="adConfigForm" label-width="150px" style="max-width: 600px;">
+                                    <el-form-item label="AD服务器">
+                                        <el-input v-model="adConfigForm.server"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="Base DN">
+                                        <el-input v-model="adConfigForm.base_dn"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="用户DN">
+                                        <el-input v-model="adConfigForm.user_dn"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="密码">
+                                        <el-input v-model="adConfigForm.password" type="password"></el-input>
+                                    </el-form-item>
+                                    <el-form-item>
+                                        <el-button type="primary" @click="testADConnection">测试连接</el-button>
+                                    </el-form-item>
+                                </el-form>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </div>
+                </main>
+            </div>
+        </div>
+
+        <!-- 创建用户对话框 -->
+        <el-dialog title="创建用户" :visible.sync="showCreateUserDialog" width="600px">
+            <el-form :model="createUserForm" label-width="100px">
+                <el-form-item label="用户名">
+                    <el-input v-model="createUserForm.sAMAccountName"></el-input>
+                </el-form-item>
+                <el-form-item label="显示名称">
+                    <el-input v-model="createUserForm.displayName"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱">
+                    <el-input v-model="createUserForm.mail"></el-input>
+                </el-form-item>
+                <el-form-item label="部门">
+                    <el-input v-model="createUserForm.department"></el-input>
+                </el-form-item>
+                <el-form-item label="职位">
+                    <el-input v-model="createUserForm.title"></el-input>
+                </el-form-item>
+                <el-form-item label="初始密码">
+                    <el-input v-model="createUserForm.password" type="password"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer">
+                <el-button @click="showCreateUserDialog = false">取消</el-button>
+                <el-button type="primary" @click="createUser">确定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.14/lib/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
+
