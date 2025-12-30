@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admanagement.repository.SysModuleMapper">
+    
+    <!-- 根据管理员ID查询有权限访问的模块列表（只返回启用状态的模块） -->
+    <select id="selectModulesByAdminId" parameterType="long" resultType="com.admanagement.entity.SysModule">
+        SELECT DISTINCT m.*
+        FROM sys_module m
+        INNER JOIN sys_permission p ON m.id = p.module_id
+        INNER JOIN sys_role_permission rp ON p.id = rp.permission_id
+        INNER JOIN sys_admin_role ar ON rp.role_id = ar.role_id
+        WHERE ar.admin_id = #{adminId}
+          AND m.status = 1
+          AND p.status = 1
+        ORDER BY m.sort_order
+    </select>
+    
+    <!-- 根据模块标识查询模块信息 -->
+    <select id="selectByModuleCode" parameterType="string" resultType="com.admanagement.entity.SysModule">
+        SELECT * FROM sys_module
+        WHERE module_code = #{moduleCode}
+          AND status = 1
+        LIMIT 1
+    </select>
+    
+    <!-- 根据父模块ID查询子模块列表（只返回启用状态的模块） -->
+    <select id="selectChildrenByParentId" parameterType="long" resultType="com.admanagement.entity.SysModule">
+        SELECT * FROM sys_module
+        WHERE parent_id = #{parentId}
+          AND status = 1
+        ORDER BY sort_order
+    </select>
+    
+</mapper>
+

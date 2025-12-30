@@ -1,0 +1,252 @@
+# AD Management System 配置文件
+# Version: 1.0.0
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+  tomcat:
+    max-http-header-size: 8192
+
+spring:
+  application:
+    name: ad-management-system
+
+  profiles:
+    active: dev
+
+  # 数据库配置
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ad_management_system?useSSL=false&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+      pool-name: ADManagementHikariCP
+
+  # Redis配置
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 2000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
+
+  # 邮件配置
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: your-email@qq.com
+    password: your-email-password
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        debug: false
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+
+  # 国际化配置
+  messages:
+    basename: i18n/messages
+    encoding: UTF-8
+
+  # 任务调度配置
+  quartz:
+    job-store-type: memory
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceName: ADManagementScheduler
+            instanceId: AUTO
+          jobStore:
+            class: org.quartz.simpl.RAMJobStore
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 10
+            threadPriority: 5
+
+# MyBatis Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*Mapper.xml
+  type-aliases-package: com.admanagement.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      # table-prefix: sys_  # 表前缀（如果需要可以配置）
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# JWT配置
+jwt:
+  secret: ad-management-system-secret-key-2024-very-long-secret-key-for-security
+  expiration: 7200  # 2小时，单位秒（Token过期时间）
+  refresh-expiration: 604800  # 7天，单位秒（刷新Token过期时间）
+  issuer: AD Management System
+
+# 安全配置
+security:
+  password:
+    encoder: bcrypt
+  login:
+    max-attempts: 5
+    lock-duration: 900  # 15分钟，单位秒
+  session:
+    timeout: 1800  # 30分钟，单位秒
+
+# AD/LDAP配置
+ad:
+  default:
+    domain: example.com
+    base-dn: DC=example,DC=com
+    timeout: 30000  # 30秒
+  sync:
+    enabled: true
+    cron: "0 0 */1 * * ?"  # 每小时同步一次
+    batch-size: 1000
+
+# 审计配置
+audit:
+  enabled: true
+  retention:
+    days: 365  # 日志保留365天
+  sensitive-fields: password,secret,key,token
+
+# 自助服务配置
+self-service:
+  password-reset:
+    enabled: true
+    require-approval: true
+    approval-expiration: 3600  # 1小时，单位秒
+    max-daily-requests: 3
+  account-unlock:
+    enabled: true
+    require-approval: true
+    auto-unlock-after: 1800  # 30分钟后自动解锁，单位秒
+
+# 系统配置
+system:
+  name: AD Management System
+  version: 1.0.0
+  language: zh-CN
+  timezone: Asia/Shanghai
+  upload:
+    path: ./uploads/
+    max-size: 10MB
+    allowed-types: jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx
+
+# 日志配置
+logging:
+  level:
+    root: INFO
+    com.admanagement: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.ldap: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/ad-management.log
+    max-size: 100MB
+    max-history: 30
+
+# 监控配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,configprops
+  endpoint:
+    health:
+      show-details: when-authorized
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Swagger配置
+swagger:
+  enabled: true
+  title: AD Management System API
+  description: AD管理系统API文档
+  version: 1.0.0
+  base-package: com.admanagement.controller
+  contact:
+    name: AD Management Team
+    email: support@admanagement.com
+
+---
+# 开发环境配置
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    root: DEBUG
+    com.admanagement: DEBUG
+
+---
+# 测试环境配置
+spring:
+  config:
+    activate:
+      on-profile: test
+
+logging:
+  level:
+    root: INFO
+    com.admanagement: INFO
+
+---
+# 生产环境配置
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN
+    com.admanagement: INFO
+
+# 生产环境数据库配置（请根据实际情况修改）
+spring:
+  datasource:
+    url: jdbc:mysql://prod-db-server:3306/ad_management_system?useSSL=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME:prod_user}
+    password: ${DB_PASSWORD}
+
+  redis:
+    host: ${REDIS_HOST:prod-redis-server}
+    password: ${REDIS_PASSWORD}

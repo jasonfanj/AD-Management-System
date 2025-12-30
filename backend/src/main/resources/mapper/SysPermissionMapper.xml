@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admanagement.repository.SysPermissionMapper">
+    
+    <!-- 根据管理员ID查询所有权限标识列表 -->
+    <select id="selectPermissionCodesByAdminId" parameterType="long" resultType="string">
+        SELECT DISTINCT p.permission_code
+        FROM sys_admin_role ar
+        INNER JOIN sys_role_permission rp ON ar.role_id = rp.role_id
+        INNER JOIN sys_permission p ON rp.permission_id = p.id
+        WHERE ar.admin_id = #{adminId}
+          AND p.status = 1
+        ORDER BY p.sort_order
+    </select>
+    
+    <!-- 根据管理员ID和模块ID查询权限标识列表 -->
+    <select id="selectPermissionCodesByAdminIdAndModuleId" resultType="string">
+        SELECT DISTINCT p.permission_code
+        FROM sys_admin_role ar
+        INNER JOIN sys_role_permission rp ON ar.role_id = rp.role_id
+        INNER JOIN sys_permission p ON rp.permission_id = p.id
+        WHERE ar.admin_id = #{adminId}
+          AND p.module_id = #{moduleId}
+          AND p.status = 1
+        ORDER BY p.sort_order
+    </select>
+    
+    <!-- 根据管理员ID查询按钮权限标识列表 -->
+    <select id="selectButtonPermissionCodesByAdminId" resultType="string">
+        SELECT DISTINCT p.permission_code
+        FROM sys_admin_role ar
+        INNER JOIN sys_role_permission rp ON ar.role_id = rp.role_id
+        INNER JOIN sys_permission p ON rp.permission_id = p.id
+        WHERE ar.admin_id = #{adminId}
+          AND p.permission_type = 2
+          AND p.status = 1
+        ORDER BY p.sort_order
+    </select>
+    
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.admanagement.repository.AdUserMapper">
+    
+    <!-- 基础结果映射 -->
+    <resultMap id="BaseResultMap" type="com.admanagement.entity.AdUser">
+        <id column="id" property="id" />
+        <result column="domain_controller_id" property="domainControllerId" />
+        <result column="dn" property="dn" />
+        <result column="sam_account_name" property="samAccountName" />
+        <result column="user_principal_name" property="userPrincipalName" />
+        <result column="display_name" property="displayName" />
+        <result column="email" property="email" />
+        <result column="department" property="department" />
+        <result column="title" property="title" />
+        <result column="manager" property="manager" />
+        <result column="telephone_number" property="telephoneNumber" />
+        <result column="mobile" property="mobile" />
+        <result column="account_status" property="accountStatus" />
+        <result column="last_logon" property="lastLogon" />
+        <result column="password_last_set" property="passwordLastSet" />
+        <result column="password_expires" property="passwordExpires" />
+        <result column="sync_time" property="syncTime" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+    
+    <!-- 查询字段 -->
+    <sql id="Base_Column_List">
+        id, domain_controller_id, dn, sam_account_name, user_principal_name,
+        display_name, email, department, title, manager, telephone_number, mobile,
+        account_status, last_logon, password_last_set, password_expires,
+        sync_time, create_time, update_time
+    </sql>
+    
+    <!-- 查询条件 -->
+    <sql id="Where_Clause">
+        <where>
+            <if test="query.domainControllerId != null">
+                AND domain_controller_id = #{query.domainControllerId}
+            </if>
+            <if test="query.accountStatus != null">
+                AND account_status = #{query.accountStatus}
+            </if>
+            <if test="query.department != null and query.department != ''">
+                AND department = #{query.department}
+            </if>
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (
+                    sam_account_name LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR display_name LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR email LIKE CONCAT('%', #{query.keyword}, '%')
+                    OR user_principal_name LIKE CONCAT('%', #{query.keyword}, '%')
+                )
+            </if>
+        </where>
+    </sql>
+    
+    <!-- 分页查询AD用户列表 -->
+    <select id="selectAdUserList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM ad_user
+        <include refid="Where_Clause"/>
+        ORDER BY create_time DESC
+        LIMIT #{query.pageSize} OFFSET #{query.offset}
+    </select>
+    
+    <!-- 统计AD用户数量 -->
+    <select id="countAdUserList" resultType="long">
+        SELECT COUNT(1)
+        FROM ad_user
+        <include refid="Where_Clause"/>
+    </select>
+    
+</mapper>
