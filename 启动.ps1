@@ -93,9 +93,12 @@ Write-Host "[4/4] Starting backend service..." -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Starting backend service..." -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Backend API: http://localhost:5000/api" -ForegroundColor Yellow
+Write-Host "Backend API: http://localhost/api" -ForegroundColor Yellow
+Write-Host "Web Access: http://localhost/" -ForegroundColor Yellow
 Write-Host "Frontend: Open frontend/index.html in browser" -ForegroundColor Yellow
 Write-Host "Default account: admin / admin123" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "NOTE: Port 80 requires administrator privileges on Windows!" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Press Ctrl+C to stop the service" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan

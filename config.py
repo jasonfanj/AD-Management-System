@@ -35,7 +35,7 @@ DEBUG = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
 
 # 服务器配置
 HOST = os.getenv('HOST', '0.0.0.0')
-PORT = int(os.getenv('PORT', 5000))
+PORT = int(os.getenv('PORT', 80))
 
 # 文件上传配置
 UPLOAD_FOLDER = BASE_DIR / 'uploads'

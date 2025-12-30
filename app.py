@@ -98,8 +98,9 @@ if __name__ == '__main__':
     print('初始化数据库...')
     init_db()
     print('后端服务启动中...')
-    print(f'API地址: http://localhost:5000/api')
+    print(f'API地址: http://localhost/api')
     print(f'前端地址: 直接打开 frontend/index.html 文件')
+    print(f'Web访问: http://localhost/')
     print('默认账户: admin / admin123')
     print('=' * 60)
     

@@ -1,5 +1,5 @@
 // 域控通-Web 前端应用
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'http://localhost/api';
 
 // 创建Vue实例
 new Vue({

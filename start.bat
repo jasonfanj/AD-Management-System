@@ -63,9 +63,12 @@ echo ========================================
 echo Starting backend service...
 echo ========================================
 echo.
-echo Backend API: http://localhost:5000/api
+echo Backend API: http://localhost/api
+echo Web Access: http://localhost/
 echo Frontend: Open frontend/index.html in browser
 echo Default account: admin / admin123
+echo.
+echo NOTE: Port 80 requires administrator privileges on Windows!
 echo.
 echo Press Ctrl+C to stop the service
 echo ========================================
