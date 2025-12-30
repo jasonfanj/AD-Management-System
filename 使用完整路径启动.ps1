@@ -31,24 +31,30 @@ if (-not (Test-Path "venv")) {
     Write-Host ""
 }
 
-# Activate virtual environment
-Write-Host "Activating virtual environment..." -ForegroundColor Green
-& "venv\Scripts\Activate.ps1"
-Write-Host ""
-
-# Install dependencies if needed
-if (-not (Test-Path "venv\Lib\site-packages\flask")) {
-    Write-Host "Installing dependencies..." -ForegroundColor Green
-    & $pythonExe -m pip install --upgrade pip | Out-Null
-    & $pythonExe -m pip install -r requirements.txt
+# Use virtual environment Python
+$venvPython = "venv\Scripts\python.exe"
+if (-not (Test-Path $venvPython)) {
+    Write-Host "[ERROR] Virtual environment not found. Creating..." -ForegroundColor Yellow
+    & $pythonExe -m venv venv
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "[ERROR] Failed to install dependencies" -ForegroundColor Red
+        Write-Host "[ERROR] Failed to create virtual environment" -ForegroundColor Red
         Read-Host "Press Enter to exit"
         exit 1
     }
-    Write-Host "Dependencies installed." -ForegroundColor Green
-    Write-Host ""
 }
+
+# Install/Update dependencies
+Write-Host "Installing/Updating dependencies..." -ForegroundColor Green
+& $venvPython -m pip install --upgrade pip | Out-Null
+& $venvPython -m pip install -r requirements.txt
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "[ERROR] Failed to install dependencies" -ForegroundColor Red
+    Write-Host "Please check your internet connection and try again." -ForegroundColor Yellow
+    Read-Host "Press Enter to exit"
+    exit 1
+}
+Write-Host "Dependencies ready." -ForegroundColor Green
+Write-Host ""
 
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Starting backend service..." -ForegroundColor Cyan
@@ -62,6 +68,6 @@ Write-Host "Press Ctrl+C to stop the service" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Start application
-& $pythonExe app.py
+# Start application (using virtual environment Python)
+& $venvPython app.py
 

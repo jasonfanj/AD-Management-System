@@ -34,26 +34,26 @@ if not exist "venv" (
 )
 echo.
 
-REM Activate virtual environment
-echo Activating virtual environment...
-call venv\Scripts\activate.bat
-if errorlevel 1 (
-    echo [ERROR] Failed to activate virtual environment
+REM Use virtual environment Python
+set VENV_PYTHON=venv\Scripts\python.exe
+
+REM Check if virtual environment Python exists
+if not exist "%VENV_PYTHON%" (
+    echo [ERROR] Virtual environment Python not found
     pause
     exit /b 1
 )
-echo.
 
 REM Upgrade pip
 echo Upgrading pip...
-python -m pip install --upgrade pip
+"%VENV_PYTHON%" -m pip install --upgrade pip
 echo.
 
 REM Install dependencies
 echo Installing dependencies from requirements.txt...
 echo This may take a few minutes...
 echo.
-pip install -r requirements.txt
+"%VENV_PYTHON%" -m pip install -r requirements.txt
 if errorlevel 1 (
     echo.
     echo [ERROR] Failed to install some dependencies
@@ -70,4 +70,3 @@ echo.
 echo You can now run start.bat to start the server.
 echo.
 pause
-

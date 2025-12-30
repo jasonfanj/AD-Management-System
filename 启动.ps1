@@ -67,33 +67,31 @@ if (-not (Test-Path "venv")) {
 }
 Write-Host ""
 
-# 激活虚拟环境
-Write-Host "[3/4] Activating virtual environment..." -ForegroundColor Green
-& "venv\Scripts\Activate.ps1"
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "[ERROR] Failed to activate virtual environment" -ForegroundColor Red
+# 使用虚拟环境中的Python
+$venvPython = "venv\Scripts\python.exe"
+if (-not (Test-Path $venvPython)) {
+    Write-Host "[ERROR] Virtual environment Python not found" -ForegroundColor Red
+    Write-Host "Please run install script first" -ForegroundColor Yellow
     Read-Host "Press Enter to exit"
     exit 1
 }
-Write-Host "Virtual environment activated." -ForegroundColor Green
-Write-Host ""
 
 # 安装依赖
-Write-Host "[4/4] Installing dependencies..." -ForegroundColor Green
-& $pythonCmd -m pip install --upgrade pip | Out-Null
-& $pythonCmd -m pip install -r requirements.txt
+Write-Host "[3/4] Installing/Updating dependencies..." -ForegroundColor Green
+& $venvPython -m pip install --upgrade pip | Out-Null
+& $venvPython -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[ERROR] Failed to install dependencies" -ForegroundColor Red
     Write-Host "Please check your internet connection and try again." -ForegroundColor Yellow
     Read-Host "Press Enter to exit"
     exit 1
 }
-Write-Host "Dependencies installed successfully." -ForegroundColor Green
+Write-Host "Dependencies ready." -ForegroundColor Green
 Write-Host ""
 
+Write-Host "[4/4] Starting backend service..." -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Starting backend service..." -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Backend API: http://localhost:5000/api" -ForegroundColor Yellow
 Write-Host "Frontend: Open frontend/index.html in browser" -ForegroundColor Yellow
@@ -103,6 +101,6 @@ Write-Host "Press Ctrl+C to stop the service" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 启动应用
-& $pythonCmd app.py
+# 启动应用（使用虚拟环境中的Python）
+& $venvPython app.py
 

@@ -1,0 +1,7 @@
+# Optional dependencies for export features
+# These are not required for basic functionality
+# Install only if you need CSV/Excel export features
+
+pandas==2.1.4
+openpyxl==3.1.2
+

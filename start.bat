@@ -34,30 +34,31 @@ if not exist "venv" (
 )
 echo.
 
-REM Activate virtual environment
-echo [3/4] Activating virtual environment...
-call venv\Scripts\activate.bat
-if errorlevel 1 (
-    echo [ERROR] Failed to activate virtual environment
+REM Use virtual environment Python
+set VENV_PYTHON=venv\Scripts\python.exe
+
+REM Check if virtual environment Python exists
+if not exist "%VENV_PYTHON%" (
+    echo [ERROR] Virtual environment Python not found
+    echo Please run install.bat first
     pause
     exit /b 1
 )
-echo Virtual environment activated.
-echo.
 
-REM Install dependencies
-echo [4/4] Installing dependencies...
-pip install --upgrade pip >nul 2>&1
-pip install -r requirements.txt
+REM Install/Update dependencies
+echo [3/4] Installing/Updating dependencies...
+"%VENV_PYTHON%" -m pip install --upgrade pip >nul 2>&1
+"%VENV_PYTHON%" -m pip install -r requirements.txt
 if errorlevel 1 (
     echo [ERROR] Failed to install dependencies
     echo Please check your internet connection and try again.
     pause
     exit /b 1
 )
-echo Dependencies installed successfully.
+echo Dependencies ready.
 echo.
 
+echo [4/4] Starting backend service...
 echo ========================================
 echo Starting backend service...
 echo ========================================
@@ -70,6 +71,7 @@ echo Press Ctrl+C to stop the service
 echo ========================================
 echo.
 
-python app.py
+REM Start application using virtual environment Python
+"%VENV_PYTHON%" app.py
 
 pause
