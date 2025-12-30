@@ -232,23 +232,48 @@
                         <h2>系统设置</h2>
                         <el-tabs>
                             <el-tab-pane label="AD配置">
-                                <el-form :model="adConfigForm" label-width="150px" style="max-width: 600px;">
-                                    <el-form-item label="AD服务器">
-                                        <el-input v-model="adConfigForm.server"></el-input>
+                                <el-alert v-if="!adConfigForm.is_configured" 
+                                    title="AD配置未完成" 
+                                    type="warning" 
+                                    :closable="false"
+                                    style="margin-bottom: 20px;">
+                                    <p>请先配置AD连接信息，才能使用AD管理功能。</p>
+                                </el-alert>
+                                <el-form :model="adConfigForm" :rules="adConfigRules" ref="adConfigForm" label-width="150px" style="max-width: 700px;">
+                                    <el-form-item label="AD服务器" prop="server">
+                                        <el-input v-model="adConfigForm.server" placeholder="例如: ldap://domain-controller:389">
+                                            <template slot="prepend">LDAP://</template>
+                                        </el-input>
+                                        <div class="form-tip">AD域控制器的LDAP地址，格式: ldap://服务器地址:端口</div>
                                     </el-form-item>
-                                    <el-form-item label="Base DN">
-                                        <el-input v-model="adConfigForm.base_dn"></el-input>
+                                    <el-form-item label="Base DN" prop="base_dn">
+                                        <el-input v-model="adConfigForm.base_dn" placeholder="例如: dc=example,dc=com"></el-input>
+                                        <div class="form-tip">域的Base DN，格式: dc=域名,dc=com</div>
                                     </el-form-item>
-                                    <el-form-item label="用户DN">
-                                        <el-input v-model="adConfigForm.user_dn"></el-input>
+                                    <el-form-item label="用户DN" prop="user_dn">
+                                        <el-input v-model="adConfigForm.user_dn" placeholder="例如: cn=admin,dc=example,dc=com"></el-input>
+                                        <div class="form-tip">用于连接AD的管理员账户DN</div>
                                     </el-form-item>
-                                    <el-form-item label="密码">
-                                        <el-input v-model="adConfigForm.password" type="password"></el-input>
+                                    <el-form-item label="密码" prop="password">
+                                        <el-input v-model="adConfigForm.password" type="password" :placeholder="adConfigForm.password ? '已设置密码' : '请输入密码'"></el-input>
+                                        <div class="form-tip">AD管理员账户密码</div>
+                                    </el-form-item>
+                                    <el-form-item label="连接选项">
+                                        <el-checkbox v-model="adConfigForm.use_ssl">使用SSL</el-checkbox>
+                                        <el-checkbox v-model="adConfigForm.use_tls" style="margin-left: 20px;">使用TLS</el-checkbox>
+                                        <div class="form-tip">SSL通常使用636端口，TLS在389端口上启用加密</div>
                                     </el-form-item>
                                     <el-form-item>
-                                        <el-button type="primary" @click="testADConnection">测试连接</el-button>
+                                        <el-button type="primary" @click="saveADConfig" :loading="configLoading">保存配置</el-button>
+                                        <el-button @click="testADConnection" :loading="testLoading">测试连接</el-button>
+                                        <el-button @click="loadADConfig">重置</el-button>
                                     </el-form-item>
                                 </el-form>
+                                <el-divider></el-divider>
+                                <div v-if="adConfigForm.last_updated" class="config-info">
+                                    <p><strong>最后更新:</strong> {{ adConfigForm.last_updated }}</p>
+                                    <p v-if="adConfigForm.updated_by"><strong>更新人:</strong> {{ adConfigForm.updated_by }}</p>
+                                </div>
                             </el-tab-pane>
                         </el-tabs>
                     </div>

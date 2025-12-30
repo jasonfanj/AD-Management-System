@@ -29,22 +29,7 @@ API地址: http://localhost:5000/api
 ============================================================
 ```
 
-### 第二步：配置AD连接
-
-编辑 `config.py` 文件，修改以下配置：
-
-```python
-AD_CONFIG = {
-    'SERVER': 'ldap://your-domain-controller:389',  # 你的AD服务器地址
-    'BASE_DN': 'dc=example,dc=com',                  # 你的域DN
-    'USER_DN': 'cn=admin,dc=example,dc=com',         # AD管理员账户
-    'PASSWORD': 'your-password',                     # AD管理员密码
-    'USE_SSL': False,
-    'USE_TLS': True,
-}
-```
-
-### 第三步：打开前端界面
+### 第二步：打开前端界面
 
 1. 在文件管理器中找到 `frontend/index.html` 文件
 2. 双击打开（或右键选择浏览器打开）
@@ -52,11 +37,17 @@ AD_CONFIG = {
    - 用户名: `admin`
    - 密码: `admin123`
 
-### 第四步：测试AD连接
+### 第三步：配置AD连接
 
 1. 登录后，点击左侧菜单"系统设置"
-2. 在"AD配置"标签页中，点击"测试连接"按钮
-3. 如果显示"AD连接成功"，说明配置正确
+2. 在"AD配置"标签页中填写AD连接信息：
+   - **AD服务器**: 例如 `ldap://domain-controller:389`
+   - **Base DN**: 例如 `dc=example,dc=com`
+   - **用户DN**: 例如 `cn=admin,dc=example,dc=com`
+   - **密码**: AD管理员密码
+3. 点击"保存配置"保存设置
+4. 点击"测试连接"验证配置是否正确
+5. 如果显示"AD连接成功"，说明配置正确
 
 ## 常见问题
 

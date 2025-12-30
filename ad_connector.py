@@ -7,7 +7,7 @@ from ldap3.core.exceptions import LDAPException, LDAPBindError
 from datetime import datetime, timedelta
 import json
 from config import AD_CONFIG
-from models import AuditLog, db
+from models import AuditLog, SystemConfig, db
 
 class ADConnector:
     """AD域连接器"""
@@ -15,7 +15,14 @@ class ADConnector:
     def __init__(self):
         self.server = None
         self.conn = None
-        self.config = AD_CONFIG
+        # 优先从数据库读取配置，如果数据库没有则使用配置文件
+        # 注意：需要在Flask应用上下文中调用
+        try:
+            self.config = SystemConfig.get_ad_config()
+        except Exception as e:
+            # 如果无法从数据库读取（如未初始化），使用配置文件
+            print(f"警告: 无法从数据库读取AD配置，使用配置文件: {e}")
+            self.config = AD_CONFIG
     
     def connect(self):
         """连接到AD域"""

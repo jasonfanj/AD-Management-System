@@ -79,9 +79,23 @@
 
 ### 配置AD连接
 
-首次使用前，需要配置AD连接信息：
+**方式一：通过Web界面配置（推荐）** ⭐
 
-1. 编辑 `config.py` 文件，或设置环境变量：
+1. 启动后端服务
+2. 打开前端界面并登录（默认账户: admin / admin123）
+3. 点击左侧菜单"系统设置"
+4. 在"AD配置"标签页中填写AD连接信息：
+   - **AD服务器**: 例如 `ldap://domain-controller:389`
+   - **Base DN**: 例如 `dc=example,dc=com`
+   - **用户DN**: 例如 `cn=admin,dc=example,dc=com`
+   - **密码**: AD管理员密码
+   - **连接选项**: 选择是否使用SSL/TLS
+5. 点击"保存配置"保存设置
+6. 点击"测试连接"验证配置是否正确
+
+**方式二：通过配置文件（可选）**
+
+如果需要通过配置文件设置默认值，可以编辑 `config.py` 文件：
    ```python
    AD_CONFIG = {
        'SERVER': 'ldap://your-domain-controller:389',
@@ -93,20 +107,7 @@
    }
    ```
 
-2. 或使用环境变量（推荐）：
-   ```bash
-   # Windows
-   set AD_SERVER=ldap://your-domain-controller:389
-   set AD_BASE_DN=dc=example,dc=com
-   set AD_USER_DN=cn=admin,dc=example,dc=com
-   set AD_PASSWORD=your-password
-   
-   # Linux/Mac
-   export AD_SERVER=ldap://your-domain-controller:389
-   export AD_BASE_DN=dc=example,dc=com
-   export AD_USER_DN=cn=admin,dc=example,dc=com
-   export AD_PASSWORD=your-password
-   ```
+**注意**: Web界面配置会覆盖配置文件中的设置，配置保存在数据库中。
 
 ### 默认账户
 

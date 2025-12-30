@@ -70,8 +70,29 @@ new Vue({
                 server: '',
                 base_dn: '',
                 user_dn: '',
-                password: ''
-            }
+                password: '',
+                use_ssl: false,
+                use_tls: true,
+                is_configured: false,
+                last_updated: '',
+                updated_by: ''
+            },
+            adConfigRules: {
+                server: [
+                    { required: true, message: '请输入AD服务器地址', trigger: 'blur' }
+                ],
+                base_dn: [
+                    { required: true, message: '请输入Base DN', trigger: 'blur' }
+                ],
+                user_dn: [
+                    { required: true, message: '请输入用户DN', trigger: 'blur' }
+                ],
+                password: [
+                    { required: true, message: '请输入密码', trigger: 'blur' }
+                ]
+            },
+            configLoading: false,
+            testLoading: false
         }
     },
     mounted() {
@@ -150,6 +171,8 @@ new Vue({
                 this.loadAuditLogs();
             } else if (index === 'reports') {
                 this.loadStats();
+            } else if (index === 'system') {
+                this.loadADConfig();
             }
         },
         
@@ -377,14 +400,98 @@ new Vue({
             }
         },
         
+        // 加载AD配置
+        async loadADConfig() {
+            try {
+                const res = await axios.get(`${API_BASE}/system/ad-config`);
+                const config = res.data;
+                
+                // 格式化时间
+                let lastUpdated = '';
+                if (config.last_updated) {
+                    const date = new Date(config.last_updated);
+                    lastUpdated = date.toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    });
+                }
+                
+                this.adConfigForm = {
+                    server: config.server || '',
+                    base_dn: config.base_dn || '',
+                    user_dn: config.user_dn || '',
+                    password: config.password === '***' ? '' : (config.password || ''), // 已配置的密码不显示
+                    use_ssl: config.use_ssl || false,
+                    use_tls: config.use_tls !== undefined ? config.use_tls : true,
+                    is_configured: config.is_configured || false,
+                    last_updated: lastUpdated,
+                    updated_by: config.updated_by || ''
+                };
+            } catch (error) {
+                console.error('加载AD配置失败', error);
+                if (error.response?.status === 403) {
+                    this.$message.warning('需要管理员权限');
+                }
+            }
+        },
+        
+        // 保存AD配置
+        async saveADConfig() {
+            this.$refs.adConfigForm.validate(async (valid) => {
+                if (!valid) return;
+                
+                this.configLoading = true;
+                try {
+                    await axios.post(`${API_BASE}/system/ad-config`, {
+                        server: this.adConfigForm.server,
+                        base_dn: this.adConfigForm.base_dn,
+                        user_dn: this.adConfigForm.user_dn,
+                        password: this.adConfigForm.password,
+                        use_ssl: this.adConfigForm.use_ssl,
+                        use_tls: this.adConfigForm.use_tls
+                    });
+                    this.$message.success('AD配置保存成功');
+                    // 重新加载配置以获取更新时间等信息
+                    await this.loadADConfig();
+                } catch (error) {
+                    this.$message.error(error.response?.data?.error || '保存失败');
+                } finally {
+                    this.configLoading = false;
+                }
+            });
+        },
+        
         // 测试AD连接
         async testADConnection() {
-            try {
-                await axios.post(`${API_BASE}/system/test-ad-connection`);
-                this.$message.success('AD连接成功');
-            } catch (error) {
-                this.$message.error(error.response?.data?.error || '连接失败');
-            }
+            // 先验证表单
+            this.$refs.adConfigForm.validate(async (valid) => {
+                if (!valid) {
+                    this.$message.warning('请先填写完整的配置信息');
+                    return;
+                }
+                
+                this.testLoading = true;
+                try {
+                    // 使用当前表单的配置进行测试
+                    await axios.post(`${API_BASE}/system/test-ad-connection`, {
+                        server: this.adConfigForm.server,
+                        base_dn: this.adConfigForm.base_dn,
+                        user_dn: this.adConfigForm.user_dn,
+                        password: this.adConfigForm.password,
+                        use_ssl: this.adConfigForm.use_ssl,
+                        use_tls: this.adConfigForm.use_tls
+                    });
+                    this.$message.success('AD连接测试成功！');
+                } catch (error) {
+                    this.$message.error(error.response?.data?.error || '连接失败，请检查配置');
+                } finally {
+                    this.testLoading = false;
+                }
+            });
         }
     }
 });

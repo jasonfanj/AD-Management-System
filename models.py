@@ -163,3 +163,77 @@ class PasswordResetRequest(db.Model):
             'expires_at': self.expires_at.isoformat() if self.expires_at else None,
         }
 
+class SystemConfig(db.Model):
+    """系统配置表"""
+    __tablename__ = 'system_configs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    config_key = db.Column(db.String(100), unique=True, nullable=False)
+    config_value = db.Column(db.Text, nullable=True)
+    description = db.Column(db.String(500), nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_by = db.Column(db.String(80), nullable=True)
+    
+    def to_dict(self):
+        """转换为字典"""
+        return {
+            'id': self.id,
+            'config_key': self.config_key,
+            'config_value': self.config_value,
+            'description': self.description,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'updated_by': self.updated_by,
+        }
+    
+    @staticmethod
+    def get_config(key, default=None):
+        """获取配置值"""
+        config = SystemConfig.query.filter_by(config_key=key).first()
+        if config:
+            return config.config_value
+        return default
+    
+    @staticmethod
+    def set_config(key, value, description=None, updated_by=None):
+        """设置配置值"""
+        config = SystemConfig.query.filter_by(config_key=key).first()
+        if config:
+            config.config_value = value
+            if description:
+                config.description = description
+            if updated_by:
+                config.updated_by = updated_by
+            config.updated_at = datetime.utcnow()
+        else:
+            config = SystemConfig(
+                config_key=key,
+                config_value=value,
+                description=description,
+                updated_by=updated_by
+            )
+            db.session.add(config)
+        db.session.commit()
+        return config
+    
+    @staticmethod
+    def get_ad_config():
+        """获取AD配置（从数据库或配置文件）"""
+        from config import AD_CONFIG
+        
+        # 优先从数据库读取
+        server = SystemConfig.get_config('ad_server', AD_CONFIG.get('SERVER', ''))
+        base_dn = SystemConfig.get_config('ad_base_dn', AD_CONFIG.get('BASE_DN', ''))
+        user_dn = SystemConfig.get_config('ad_user_dn', AD_CONFIG.get('USER_DN', ''))
+        password = SystemConfig.get_config('ad_password', AD_CONFIG.get('PASSWORD', ''))
+        use_ssl = SystemConfig.get_config('ad_use_ssl', str(AD_CONFIG.get('USE_SSL', False))).lower() == 'true'
+        use_tls = SystemConfig.get_config('ad_use_tls', str(AD_CONFIG.get('USE_TLS', True))).lower() == 'true'
+        
+        return {
+            'SERVER': server,
+            'BASE_DN': base_dn,
+            'USER_DN': user_dn,
+            'PASSWORD': password,
+            'USE_SSL': use_ssl,
+            'USE_TLS': use_tls,
+        }
+
