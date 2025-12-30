@@ -1,9 +1,9 @@
 @echo off
-REM AD Management System - 环境检测脚本 (Windows)
+REM AD Management System - Environment Check Script (Windows)
 REM Version: 2.0.0
 
-chcp 65001 > nul
 setlocal enabledelayedexpansion
+chcp 936 > nul 2>&1
 
 echo ===========================================
 echo    AD Management System - 环境检测工具
@@ -25,7 +25,7 @@ if %errorlevel% equ 0 (
         goto :java_found
     )
     :java_found
-    echo [✓] Java已安装: !JAVA_VERSION!
+    echo [OK] Java已安装: !JAVA_VERSION!
     
     REM 检查Java版本是否符合要求（需要17+）
     for /f "tokens=1 delims=." %%a in ("!JAVA_VERSION!") do set "JAVA_MAJOR=%%a"
@@ -34,13 +34,13 @@ if %errorlevel% equ 0 (
         for /f "tokens=2 delims=." %%b in ("!JAVA_VERSION!") do set "JAVA_MAJOR=%%b"
     )
     if !JAVA_MAJOR! lss 17 (
-        echo [✗] Java版本过低，需要JDK 17或更高版本
+        echo [X] Java版本过低，需要JDK 17或更高版本
         set "ERROR_FLAG=1"
     ) else (
-        echo [✓] Java版本符合要求（17+）
+        echo [OK] Java版本符合要求（17+）
     )
 ) else (
-    echo [✗] 未检测到Java环境
+    echo [X] 未检测到Java环境
     set "ERROR_FLAG=1"
     set "NEED_JAVA=1"
 )
@@ -56,9 +56,9 @@ if %errorlevel% equ 0 (
         goto :maven_found
     )
     :maven_found
-    echo [✓] Maven已安装: !MAVEN_VERSION!
+    echo [OK] Maven已安装: !MAVEN_VERSION!
 ) else (
-    echo [✗] 未检测到Maven环境
+    echo [X] 未检测到Maven环境
     set "ERROR_FLAG=1"
     set "NEED_MAVEN=1"
 )
@@ -70,20 +70,20 @@ echo [检查] 检测Node.js环境...
 node --version >nul 2>&1
 if %errorlevel% equ 0 (
     for /f %%g in ('node --version') do set "NODE_VERSION=%%g"
-    echo [✓] Node.js已安装: !NODE_VERSION!
+    echo [OK] Node.js已安装: !NODE_VERSION!
     
     REM 检查Node.js版本（需要18+）
     for /f "tokens=1 delims=v" %%a in ("!NODE_VERSION!") do set "NODE_VER=%%a"
     for /f "tokens=1 delims=." %%a in ("!NODE_VERSION!") do set "NODE_MAJOR=%%a"
     for /f "tokens=1 delims=v" %%a in ("!NODE_MAJOR!") do set "NODE_MAJOR=%%a"
     if !NODE_MAJOR! lss 18 (
-        echo [✗] Node.js版本过低，需要18或更高版本
+        echo [X] Node.js版本过低，需要18或更高版本
         set "ERROR_FLAG=1"
     ) else (
-        echo [✓] Node.js版本符合要求（18+）
+        echo [OK] Node.js版本符合要求（18+）
     )
 ) else (
-    echo [✗] 未检测到Node.js环境
+    echo [X] 未检测到Node.js环境
     set "ERROR_FLAG=1"
     set "NEED_NODE=1"
 )
@@ -95,9 +95,9 @@ echo [检查] 检测npm环境...
 npm --version >nul 2>&1
 if %errorlevel% equ 0 (
     for /f %%g in ('npm --version') do set "NPM_VERSION=%%g"
-    echo [✓] npm已安装: !NPM_VERSION!
+    echo [OK] npm已安装: !NPM_VERSION!
 ) else (
-    echo [✗] 未检测到npm环境
+    echo [X] 未检测到npm环境
     set "ERROR_FLAG=1"
     set "NEED_NPM=1"
 )
@@ -134,7 +134,7 @@ if %ERROR_FLAG% equ 1 (
     pause
     exit /b 1
 ) else (
-    echo [✓] 所有运行环境已就绪！
+    echo [OK] 所有运行环境已就绪！
     echo.
     exit /b 0
 )

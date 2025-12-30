@@ -1,10 +1,10 @@
 @echo off
-REM AD Management System - 智能一键启动脚本 (Windows)
+REM AD Management System - Smart Start Script (Windows)
 REM Version: 2.0.0
-REM 自动检测环境，自动安装依赖，自动启动服务
+REM Auto detect environment, auto install dependencies, auto start services
 
-chcp 65001 > nul
 setlocal enabledelayedexpansion
+chcp 936 > nul 2>&1
 
 echo ===========================================
 echo    AD Management System - 智能一键启动
@@ -47,9 +47,9 @@ if not exist "node_modules" (
         pause
         exit /b 1
     )
-    echo [✓] 前端依赖安装完成
+    echo [OK] 前端依赖安装完成
 ) else (
-    echo [✓] 前端依赖已存在
+    echo [OK] 前端依赖已存在
 )
 cd ..
 
