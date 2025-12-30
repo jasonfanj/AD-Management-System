@@ -1,51 +1,75 @@
 @echo off
-chcp 65001 >nul
+chcp 65001 >nul 2>&1
+cls
 echo ========================================
-echo 域控通-Web AD管理系统
+echo Domain Controller Web - AD Management System
 echo ========================================
 echo.
 
-REM 检查Python是否安装
+REM Check Python installation
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo [错误] 未检测到Python，请先安装Python 3.8+
-    echo 下载地址: https://www.python.org/downloads/
+    echo [ERROR] Python not found. Please install Python 3.8+
+    echo Download: https://www.python.org/downloads/
     pause
     exit /b 1
 )
 
-echo [1/3] 检查Python环境...
+echo [1/4] Checking Python environment...
 python --version
+echo.
 
-REM 检查虚拟环境
+REM Check virtual environment
 if not exist "venv" (
-    echo [2/3] 创建虚拟环境...
+    echo [2/4] Creating virtual environment...
     python -m venv venv
+    if errorlevel 1 (
+        echo [ERROR] Failed to create virtual environment
+        pause
+        exit /b 1
+    )
+    echo Virtual environment created successfully.
+) else (
+    echo [2/4] Virtual environment exists.
 )
+echo.
 
-REM 激活虚拟环境
-echo [3/3] 激活虚拟环境并安装依赖...
+REM Activate virtual environment
+echo [3/4] Activating virtual environment...
 call venv\Scripts\activate.bat
-
-REM 安装依赖
-if not exist "venv\Lib\site-packages\flask" (
-    echo 正在安装依赖包...
-    pip install -r requirements.txt
+if errorlevel 1 (
+    echo [ERROR] Failed to activate virtual environment
+    pause
+    exit /b 1
 )
+echo Virtual environment activated.
+echo.
 
+REM Install dependencies
+echo [4/4] Installing dependencies...
+pip install --upgrade pip >nul 2>&1
+pip install -r requirements.txt
+if errorlevel 1 (
+    echo [ERROR] Failed to install dependencies
+    echo Please check your internet connection and try again.
+    pause
+    exit /b 1
+)
+echo Dependencies installed successfully.
 echo.
+
 echo ========================================
-echo 启动后端服务...
+echo Starting backend service...
 echo ========================================
 echo.
-echo 提示: 后端启动后，请直接打开 frontend/index.html 文件使用
-echo 默认账户: admin / admin123
+echo Backend API: http://localhost:5000/api
+echo Frontend: Open frontend/index.html in browser
+echo Default account: admin / admin123
 echo.
-echo 按 Ctrl+C 停止服务
+echo Press Ctrl+C to stop the service
 echo ========================================
 echo.
 
 python app.py
 
 pause
-
