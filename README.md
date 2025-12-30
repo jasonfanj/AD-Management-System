@@ -159,9 +159,12 @@ AD Management System/
 ├── database/                   # 数据库脚本
 │   └── init.sql               # 初始化脚本
 ├── scripts/                    # 启动脚本
+│   ├── smart-start.bat/sh     # 智能一键启动（推荐）⭐
+│   ├── check-env.bat/sh       # 环境检测工具
+│   ├── auto-setup-env.bat     # 自动环境配置（Windows）
+│   ├── start-all.bat/sh       # 一键启动脚本
 │   ├── start-backend.bat/sh   # 后端启动脚本
 │   ├── start-frontend.bat/sh  # 前端启动脚本
-│   ├── start-all.bat          # 一键启动脚本
 │   └── init-database.bat/sh   # 数据库初始化
 └── docs/                      # 项目文档
 ```
@@ -170,27 +173,103 @@ AD Management System/
 
 ### 环境准备
 
+#### 方式一：自动检测和安装（推荐）⭐
+
+**Windows用户：**
+```batch
+# 使用智能启动脚本，自动检测并提示安装缺失的环境
+scripts\smart-start.bat
+
+# 或使用环境检测工具
+scripts\check-env.bat
+
+# 自动安装缺失的环境（需要Chocolatey）
+scripts\auto-setup-env.bat
+```
+
+**Linux/Mac用户：**
+```bash
+# 检测环境
+chmod +x scripts/check-env.sh
+./scripts/check-env.sh
+```
+
+#### 方式二：手动安装
+
 1. **安装JDK 17+**
    ```bash
+   # Windows: 下载安装 https://adoptium.net/
+   # 或使用 Chocolatey: choco install openjdk17
+   
+   # Linux (Ubuntu/Debian)
+   sudo apt install openjdk-17-jdk
+   
+   # Mac
+   brew install openjdk@17
+   
    # 检查Java版本
    java -version
    ```
 
 2. **安装Node.js 18+**
    ```bash
+   # Windows: 下载安装 https://nodejs.org/
+   # 或使用 Chocolatey: choco install nodejs-lts
+   
+   # Linux (Ubuntu/Debian)
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt install -y nodejs
+   
+   # Mac
+   brew install node
+   
    # 检查Node.js版本
    node --version
    npm --version
    ```
 
-3. **安装MySQL 8.0+**
+3. **安装Maven 3.8+**
    ```bash
-   # 启动MySQL服务
-   sudo systemctl start mysql  # Linux
-   # 或在Windows中启动MySQL服务
+   # Windows: 下载安装 https://maven.apache.org/download.cgi
+   # 或使用 Chocolatey: choco install maven
+   
+   # Linux (Ubuntu/Debian)
+   sudo apt install maven
+   
+   # Mac
+   brew install maven
+   
+   # 检查Maven版本
+   mvn -version
    ```
 
-4. **安装Maven 3.8+** (可选，通常包含在IDE中)
+4. **安装MySQL 8.0+**
+   ```bash
+   # Windows: 下载安装 https://dev.mysql.com/downloads/mysql/
+   # 或使用 Chocolatey: choco install mysql
+   
+   # Linux (Ubuntu/Debian)
+   sudo apt install mysql-server
+   sudo systemctl start mysql
+   
+   # Mac
+   brew install mysql
+   brew services start mysql
+   ```
+
+5. **安装Redis（可选，用于缓存）**
+   ```bash
+   # Windows: 下载安装 https://github.com/microsoftarchive/redis/releases
+   # 或使用 Chocolatey: choco install redis-64
+   
+   # Linux (Ubuntu/Debian)
+   sudo apt install redis-server
+   sudo systemctl start redis
+   
+   # Mac
+   brew install redis
+   brew services start redis
+   ```
 
 ### 数据库初始化
 
@@ -209,7 +288,65 @@ chmod +x scripts/init-database.sh
 
 ### 启动应用
 
-#### 方式一：分别启动 (推荐用于开发)
+#### 方式一：智能一键启动 ⭐ (推荐)
+
+自动检测运行环境，自动安装缺失组件，自动安装依赖，一键启动所有服务。
+
+**Windows:**
+```batch
+# 智能一键启动（推荐，自动检测并配置环境）
+scripts\smart-start.bat
+```
+
+**功能特性:**
+- ✅ 自动检测 Java、Maven、Node.js 环境
+- ✅ 自动提示缺失的环境组件
+- ✅ 支持使用 Chocolatey 自动安装缺失组件
+- ✅ 自动安装前端 npm 依赖
+- ✅ 自动启动后端和前端服务
+
+**Linux/Mac:**
+```bash
+# 智能一键启动（需要手动安装依赖）
+chmod +x scripts/check-env.sh
+chmod +x scripts/smart-start.sh
+./scripts/smart-start.sh
+```
+
+#### 方式二：环境检测工具
+
+在启动前，可以先检测运行环境是否已配置完成：
+
+**Windows:**
+```batch
+# 检测运行环境
+scripts\check-env.bat
+
+# 自动配置运行环境（使用Chocolatey）
+scripts\auto-setup-env.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x scripts/check-env.sh
+./scripts/check-env.sh
+```
+
+#### 方式三：传统一键启动
+
+**Windows:**
+```batch
+# 一键启动（需要手动确保环境已配置）
+scripts\start-all.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x scripts/start-all.sh
+./scripts/start-all.sh
+```
+
+#### 方式四：分别启动 (推荐用于开发调试)
 
 **Windows:**
 ```batch
@@ -229,13 +366,6 @@ chmod +x scripts/start-backend.sh
 # 启动前端 (新终端)
 chmod +x scripts/start-frontend.sh
 ./scripts/start-frontend.sh
-```
-
-#### 方式二：一键启动
-
-**Windows:**
-```batch
-scripts\start-all.bat
 ```
 
 ### 访问应用
@@ -363,47 +493,420 @@ scripts\start-all.bat
 ## 📈 部署指南
 
 ### 开发环境
+
+#### Windows 快速部署
+
+1. **数据库初始化**
+   ```batch
+   # 初始化数据库（首次运行）
+   scripts\init-database.bat
+   ```
+
+2. **智能一键启动**（推荐）
+   ```batch
+   # 自动检测环境、安装依赖、启动服务
+   scripts\smart-start.bat
+   ```
+
+3. **手动启动**（如需分别启动）
+   ```batch
+   # 方式1: 一键启动
+   scripts\start-all.bat
+
+   # 方式2: 分别启动
+   scripts\start-backend.bat
+   scripts\start-frontend.bat
+   ```
+
+#### Linux/Mac 快速部署
+
+1. **数据库初始化**
+   ```bash
+   # 初始化数据库（首次运行）
+   chmod +x scripts/init-database.sh
+   ./scripts/init-database.sh
+   ```
+
+2. **环境检测**
+   ```bash
+   # 检测运行环境
+   chmod +x scripts/check-env.sh
+   ./scripts/check-env.sh
+   ```
+
+3. **启动服务**
+   ```bash
+   # 方式1: 一键启动
+   chmod +x scripts/start-all.sh
+   ./scripts/start-all.sh
+
+   # 方式2: 分别启动
+   chmod +x scripts/start-backend.sh
+   chmod +x scripts/start-frontend.sh
+   ./scripts/start-backend.sh
+   ./scripts/start-frontend.sh
+   ```
+
+#### 环境要求检查清单
+
+启动前请确保以下环境已正确安装：
+
+- ✅ **Java JDK 17+**
+  - Windows: [下载地址](https://adoptium.net/) 或使用 `choco install openjdk17`
+  - Linux: `sudo apt install openjdk-17-jdk` (Ubuntu/Debian)
+  - Mac: `brew install openjdk@17`
+
+- ✅ **Maven 3.8+**
+  - Windows: [下载地址](https://maven.apache.org/download.cgi) 或使用 `choco install maven`
+  - Linux: `sudo apt install maven` (Ubuntu/Debian)
+  - Mac: `brew install maven`
+
+- ✅ **Node.js 18+** 和 **npm**
+  - Windows: [下载地址](https://nodejs.org/) 或使用 `choco install nodejs-lts`
+  - Linux: `curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash - && sudo apt install -y nodejs`
+  - Mac: `brew install node`
+
+- ✅ **MySQL 8.0+**（数据库服务需要单独启动）
+- ⚠️ **Redis**（可选，如使用缓存功能）
+
+#### 启动脚本说明
+
+项目提供了多个启动脚本，方便不同场景使用：
+
+| 脚本名称 | 功能说明 | 使用场景 |
+|---------|---------|---------|
+| `smart-start.bat/sh` | 智能一键启动 | ⭐ 推荐，首次使用 |
+| `check-env.bat/sh` | 环境检测工具 | 检查运行环境 |
+| `auto-setup-env.bat` | 自动环境配置 | Windows自动安装环境（需Chocolatey） |
+| `start-all.bat/sh` | 一键启动 | 环境已配置时使用 |
+| `start-backend.bat/sh` | 启动后端 | 单独启动后端服务 |
+| `start-frontend.bat/sh` | 启动前端 | 单独启动前端服务 |
+| `init-database.bat/sh` | 数据库初始化 | 首次部署时初始化数据库 |
+
+### 生产环境部署
+
+#### 1. 后端部署
+
+**方式一：JAR包部署**（推荐）
+
 ```bash
-# 1. 启动数据库
-# 2. 执行数据库初始化
-./scripts/init-database.sh
+# 1. 进入后端目录
+cd backend
 
-# 3. 启动后端
-./scripts/start-backend.sh
+# 2. 构建生产JAR包
+mvn clean package -DskipTests -Pprod
 
-# 4. 启动前端
-./scripts/start-frontend.sh
+# 3. 运行JAR包
+java -jar target/ad-management-system-1.0.0.jar --spring.profiles.active=prod
+
+# 或使用后台运行
+nohup java -jar target/ad-management-system-1.0.0.jar --spring.profiles.active=prod > logs/app.log 2>&1 &
 ```
 
-### 生产环境
+**方式二：Docker部署**
 
-1. **后端部署**
-   ```bash
-   # 1. 构建JAR包
-   cd backend
-   mvn clean package -DskipTests
+```dockerfile
+# backend/Dockerfile
+FROM openjdk:17-jdk-alpine
 
-   # 2. 运行JAR包
-   java -jar target/ad-management-system-1.0.0.jar --spring.profiles.active=prod
-   ```
+WORKDIR /app
 
-2. **前端部署**
-   ```bash
-   # 1. 构建生产版本
-   cd frontend
-   npm run build:prod
+# 复制JAR包
+COPY target/ad-management-system-1.0.0.jar app.jar
 
-   # 2. 部署dist目录到Web服务器
-   # Apache/Nginx配置示例
-   ```
+# 暴露端口
+EXPOSE 8080
 
-3. **Docker部署** (可选)
-   ```dockerfile
-   # Dockerfile示例
-   FROM openjdk:17-jdk-alpine
-   COPY target/*.jar app.jar
-   ENTRYPOINT ["java","-jar","/app.jar"]
-   ```
+# 启动应用
+ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=prod"]
+```
+
+```bash
+# 构建镜像
+docker build -t ad-management-backend:latest ./backend
+
+# 运行容器
+docker run -d \
+  --name ad-management-backend \
+  -p 8080:8080 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  -e SPRING_DATASOURCE_URL=jdbc:mysql://mysql-host:3306/admanagement \
+  -e SPRING_DATASOURCE_USERNAME=root \
+  -e SPRING_DATASOURCE_PASSWORD=yourpassword \
+  ad-management-backend:latest
+```
+
+**方式三：使用systemd服务（Linux）**
+
+创建服务文件 `/etc/systemd/system/ad-management.service`:
+
+```ini
+[Unit]
+Description=AD Management System Backend
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=admanagement
+WorkingDirectory=/opt/ad-management/backend
+ExecStart=/usr/bin/java -jar /opt/ad-management/backend/target/ad-management-system-1.0.0.jar --spring.profiles.active=prod
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# 启用并启动服务
+sudo systemctl enable ad-management
+sudo systemctl start ad-management
+sudo systemctl status ad-management
+```
+
+#### 2. 前端部署
+
+**方式一：静态文件部署**
+
+```bash
+# 1. 进入前端目录
+cd frontend
+
+# 2. 安装依赖（首次）
+npm install
+
+# 3. 构建生产版本
+npm run build:prod
+
+# 4. 部署dist目录到Web服务器
+# 将 dist 目录内容复制到 Web 服务器根目录
+```
+
+**Nginx配置示例:**
+
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
+    root /var/www/ad-management/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api {
+        proxy_pass http://localhost:8080/api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+**Apache配置示例:**
+
+```apache
+<VirtualHost *:80>
+    ServerName your-domain.com
+    DocumentRoot /var/www/ad-management/dist
+
+    <Directory /var/www/ad-management/dist>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+        RewriteEngine On
+        RewriteBase /
+        RewriteRule ^index\.html$ - [L]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule . /index.html [L]
+    </Directory>
+
+    ProxyPreserveHost On
+    ProxyPass /api http://localhost:8080/api
+    ProxyPassReverse /api http://localhost:8080/api
+</VirtualHost>
+```
+
+**方式二：Docker部署**
+
+```dockerfile
+# frontend/Dockerfile
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build:prod
+
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### 3. 数据库配置
+
+生产环境数据库配置建议：
+
+1. **使用独立的MySQL服务器**
+2. **配置连接池参数**
+3. **启用SSL连接**（如需要）
+4. **定期备份数据库**
+
+```yaml
+# application-prod.yml
+spring:
+  datasource:
+    url: jdbc:mysql://mysql-server:3306/admanagement?useSSL=true&serverTimezone=Asia/Shanghai
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+```
+
+#### 4. 完整部署流程
+
+**生产环境部署步骤：**
+
+```bash
+# 1. 克隆项目
+git clone <repository-url>
+cd AD-Management-System
+
+# 2. 配置生产环境配置文件
+cp backend/src/main/resources/application.yml backend/src/main/resources/application-prod.yml
+# 编辑 application-prod.yml，配置数据库、Redis等
+
+# 3. 初始化数据库
+mysql -u root -p < database/init.sql
+
+# 4. 构建后端
+cd backend
+mvn clean package -DskipTests -Pprod
+cd ..
+
+# 5. 构建前端
+cd frontend
+npm install
+npm run build:prod
+cd ..
+
+# 6. 部署后端（选择一种方式）
+# 方式1: 直接运行JAR
+java -jar backend/target/ad-management-system-1.0.0.jar --spring.profiles.active=prod
+
+# 方式2: 使用Docker
+docker-compose up -d
+
+# 方式3: 使用systemd（Linux）
+sudo systemctl start ad-management
+
+# 7. 部署前端（选择一种方式）
+# 方式1: 使用Nginx/Apache
+# 将 frontend/dist 目录内容复制到Web服务器
+
+# 方式2: 使用Docker
+docker build -t ad-management-frontend ./frontend
+docker run -d -p 80:80 ad-management-frontend
+```
+
+#### 5. Docker Compose 一键部署（推荐）
+
+创建 `docker-compose.yml`:
+
+```yaml
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: ad-management-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: yourpassword
+      MYSQL_DATABASE: admanagement
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ad-management-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ad-management-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ad-management-network
+
+  backend:
+    build: ./backend
+    container_name: ad-management-backend
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/admanagement
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: yourpassword
+      SPRING_REDIS_HOST: redis
+    ports:
+      - "8080:8080"
+    networks:
+      - ad-management-network
+
+  frontend:
+    build: ./frontend
+    container_name: ad-management-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - ad-management-network
+
+volumes:
+  mysql-data:
+
+networks:
+  ad-management-network:
+    driver: bridge
+```
+
+```bash
+# 一键启动所有服务
+docker-compose up -d
+
+# 查看服务状态
+docker-compose ps
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+#### 6. 部署检查清单
+
+- [ ] 数据库已初始化并配置完成
+- [ ] 后端配置文件已更新（`application-prod.yml`）
+- [ ] 前端API地址已配置为生产环境地址
+- [ ] 防火墙端口已开放（80, 8080, 3306等）
+- [ ] SSL证书已配置（如使用HTTPS）
+- [ ] 日志目录权限已配置
+- [ ] 定期备份计划已设置
+- [ ] 监控和告警已配置
+- [ ] 安全策略已审查（密码策略、权限控制等）
 
 ## 🤝 贡献指南
 
